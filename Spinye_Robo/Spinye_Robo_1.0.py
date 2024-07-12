@@ -1,8 +1,8 @@
 # Spinye Robo 1.0 created by Swaraj Mohite
 
-# Required packages: pyttsx3, pyjokes, google_trans_new, SpeechRecognition
+# Required packages: pyttsx3, pyjokes, google_trans_new, SpeechRecognition, googletrans, translate, speech_recognition
 # Install using:
-# pip install pyttsx3 pyjokes google_trans_new SpeechRecognition
+# pip install pyttsx3 pyjokes google_trans_new SpeechRecognition googletrans translate speech_recognition
 
 import pyttsx3  # Module to speak the text
 import pyjokes  # To generate Random Jokes
