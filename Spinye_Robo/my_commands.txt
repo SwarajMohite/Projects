@@ -1,12 +1,1 @@
-vtrans
-Hello
-trans
-vtrans
-trans
-quit
-vtrans
-trans
-vtrans
-trans
-Hello
-joke
+
