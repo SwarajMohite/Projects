@@ -6,10 +6,15 @@
 
 import pyttsx3  # Module to speak the text
 import pyjokes  # To generate Random Jokes
-from google_trans_new import google_translator
-import speech_recognition as SR
+from google_trans_new import google_translator # Module to Translate New.
+from translate import Translator # To translate
+import googletrans # Module to Translate
+import speech_recognition as SR # Module for Speech functionality
 
 def intro(user_name):
+    """
+    Introduction of Spinye to the user. About its usage.
+    """
     intro_message = f'''
     Hello {user_name}! You can interact with me by typing commands or speaking to me.
     You can ask me to do various things like translate or tell jokes.
@@ -21,6 +26,9 @@ def intro(user_name):
     SpeakIT.runAndWait()
 
 def show_help():
+    """
+    Show the help message i.e listing available commands.
+    """
     help_message = '''
     Available commands:
     1. Enter any text to hear it spoken by me
@@ -40,6 +48,9 @@ def show_help():
     SpeakIT.runAndWait()
 
 def set_voice(SpeakIT):
+    """
+    Set the voice of the speech engine. i.e Male or Female
+    """
     voices = SpeakIT.getProperty('voices')
     print("Available voices: \n")
     SpeakIT.say("Available voices")
@@ -48,13 +59,16 @@ def set_voice(SpeakIT):
         print(f"{index}: {voice.name}")
     choice = input("Enter the number of the voice you want: ")
     if choice.isdigit() and 0 <= int(choice) < len(voices):
+        SpeakIT.setProperty('voice', voices[int(choice)].id)
         SpeakIT.say("Voice changed successfully!")
         SpeakIT.runAndWait()
-        SpeakIT.setProperty('voice', voices[int(choice)].id)
     else:
         print("Invalid input. Please enter a valid number.")
 
 def set_rate(SpeakIT):
+    """
+    Set the speech rate of the speech engine.
+    """
     rate = input("Enter the speech rate (Default is 200): ")
     if rate.isdigit():
         SpeakIT.setProperty('rate', int(rate))
@@ -62,6 +76,9 @@ def set_rate(SpeakIT):
         print("Invalid input. Please enter a valid number.")
 
 def set_volume(SpeakIT):
+    """
+    Set the volume of the speech engine.
+    """
     volume = input("Enter the desired volume between 0.0 and 1.0: ")
     try:
         volume = float(volume)
@@ -73,16 +90,25 @@ def set_volume(SpeakIT):
         print("Invalid input. Please enter a valid number.")
 
 def tell_joke():
+    """
+    Tell a random joke using the pyjokes module.
+    """
     joke = pyjokes.get_joke()
     print(joke)
     SpeakIT.say(joke)
     SpeakIT.runAndWait()
 
 def my_commands(command):
+    """
+    Save the user's commands to a file my_commands.txt .
+    """
     with open("my_commands.txt", "a") as file:
         file.write(command + "\n")
 
 def clear_file():
+    """
+    Clear the saved commands from the file my_commands.txt .
+    """
     with open("my_commands.txt", "w") as file:
         file.write("")
     print("Commands cleared from file.")
@@ -90,77 +116,118 @@ def clear_file():
     SpeakIT.runAndWait()
 
 def list_commands():
+    """
+    Shows the list of previously entered commands from the file.
+    """
     print("Previously entered commands: \n")
     SpeakIT.say("Previously entered commands")
     SpeakIT.runAndWait()
     with open("my_commands.txt") as file:
         commands = file.readlines()
         for command in commands:
-            print(command)
-            SpeakIT.say(command)
+            print(command.strip())
+            SpeakIT.say(command.strip())
             SpeakIT.runAndWait()
 
 def translate():
-    translator = google_translator()
+    """
+    Translate text to another language using google_translator.
+    """
+    lang_choice = input("\nDo you want a list of language codes (y/n) to enter the language you are typing: ")
+    if lang_choice.lower() == "y":
+        languages = googletrans.LANGUAGES
+        print("Available languages:\n")
+        for code, language in languages.items():
+            print(f"{language.title()}: {code}")
+
+    lang_from = input("Enter the language code you are typing: (en for english) : ")
     text_to_translate = input("Enter the text to translate: ")
+
     lang_choice = input("\nDo you want a list of language codes (y/n) to enter the desired language: ")
     if lang_choice.lower() == "y":
-        for code, language in google_translator.LANGUAGES.items():
+        for code, language in googletrans.LANGUAGES.items():
             print(f"{language.title()}: {code}")
-    lang = input("Enter the target language code: ")
+
+    lang_to = input("Enter the target language code: (mr for marathi, fr for french) : ")
+
     try:
-        translated = translator.translate(text_to_translate, lang_tgt=lang)
+        translator = Translator(from_lang=lang_from, to_lang=lang_to)
+        translated = translator.translate(text_to_translate)
         print(f"Translated text: {translated}")
         SpeakIT.say(translated)
         SpeakIT.runAndWait()
     except Exception as e:
         error = "Sorry! I couldn't translate the text!"
-        print(error)
+        print(f"{error} Error: {e}")
         SpeakIT.say(error)
         SpeakIT.runAndWait()
 
 
-
 def voice_translate():
+    """
+    Translate spoken language (english) to another language using google_translator and speech_recognition.
+    """
     recognizer = SR.Recognizer()
     translator = google_translator()
+    
     try:
         with SR.Microphone() as source:
+            lang_choice = input("\nDo you want a list of language codes (y/n) to enter the language you are speaking: ")
+            if lang_choice.lower() == "y":
+                languages = googletrans.LANGUAGES
+                print("Available languages:\n")
+                for code, language in languages.items():
+                    print(f"{language.title()}: {code}")
+
+            lang_from = input("Enter the language code you are speaking: (en for English) : ")
+
+            print("Clearing the background noise....")
+            SpeakIT.say("Clearing the background noise....")
+            SpeakIT.runAndWait()
             recognizer.adjust_for_ambient_noise(source, duration=1)
+
             print("Speak something...")
             SpeakIT.say("Speak something...")
             SpeakIT.runAndWait()
-            audio = recognizer.listen(source)
-            print("Recognizing speech...")
-            SpeakIT.say("Recognizing speech...")
+            audio = recognizer.listen(source, timeout=10)  # Increased timeout duration
+            print("Done Recording...")
+            SpeakIT.say("Done Recording...")
             SpeakIT.runAndWait()
-            text = recognizer.recognize_google(audio)
-            print(f"You said: {text}")
+
+        print("Recognizing speech...")
+        SpeakIT.say("Recognizing speech...")
+        SpeakIT.runAndWait()
+        text = recognizer.recognize_google(audio, language=lang_from)
+        print(f"You said: {text}")
 
         lang_choice = input("\nDo you want a list of language codes (y/n) to enter the desired language: ")
-    
+
         if lang_choice.lower() == "y":
-            languages = google_translator.LANGUAGES
-            print("Available languages:\n")
-            for code, language in languages.items():
+            for code, language in googletrans.LANGUAGES.items():
                 print(f"{language.title()}: {code}")
-            
-        lang = input("Enter the target language code: ")
-        translated = translator.translate(text, lang_tgt=lang)
-        translated_text = translated
-        print(f"Translated text: {translated_text}")
-        SpeakIT.say(translated_text)
+
+        lang_to = input("Enter the target language code: (fr for french , mr for Marathi) : ")
+        translator = Translator(from_lang=lang_from, to_lang=lang_to)
+        translated = translator.translate(text)
+        print(f"Translated text: {translated}")
+        SpeakIT.say(translated)
         SpeakIT.runAndWait()
+    
     except Exception as e:
-        print(f"Translation error: {e}")
-        SpeakIT.say(f"Translation error: {e}")
+        error = "Sorry! I couldn't translate the text!"
+        print(f"{error} Error: {e}")
+        SpeakIT.say(error)
         SpeakIT.runAndWait()
 
+
 if __name__ == '__main__':
+    """
+    Main function. 
+    """
     SpeakIT = pyttsx3.init()
     voices = SpeakIT.getProperty('voices')
     SpeakIT.setProperty('voice', voices[0].id)  # Set default voice at 0th position i.e. 1st element
-    
+
     print("Welcome to Spinye 1.0 created by Swaraj!")
     SpeakIT.say("Welcome to Spinye 1.0 created by Swaraj!")
     SpeakIT.runAndWait()
@@ -174,6 +241,8 @@ if __name__ == '__main__':
     while True:
         command = input("Enter the command or text which you want me to speak: ")
         my_commands(command)
+
+        # calling different functions
         if command.lower() == "quit":
             SpeakIT.say(f"Goodbye, {user_name}!")
             SpeakIT.runAndWait()
@@ -201,4 +270,4 @@ if __name__ == '__main__':
             SpeakIT.runAndWait()
 
 
-# The Spinye Robo 1.0 AI program is a powerful tool designed to enhance communication, learning, and entertainment. Its diverse features make it suitable for a wide range of users, from those with speech impairments to language learners and professionals working in multilingual environments. By integrating text-to-speech, translation, and interactive capabilities, the program offers practical solutions to everyday challenges in communication and accessibility.
+# The Spinye Robo 1.0 AI program is a powerful tool designed to enhance communication, learning, and entertainment. Its diverse features make it suitable for a wide range of users, from those with speech impairments to language learners and professionals working in multilingual environments. By integrating text-to-speech, translation, and interactive capabilities, the program offers practical solutions to everyday challenges in communication and accessibility.c
